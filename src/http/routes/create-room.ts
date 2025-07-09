@@ -9,25 +9,29 @@ export const createRoomRoute: FastifyPluginCallbackZod = (app) => {
     {
       schema: {
         body: z.object({
-          name: z.string().min(1, { message: 'Name is required' }),
+          name: z.string().min(1),
           description: z.string().optional(),
         }),
+      },
     },
-  }, 
-  async (request, reply) => {
-    const { name, description } = request.body
+    async (request, reply) => {
+      const { name, description } = request.body
 
-    const result = await db.insert(schema.rooms).values({
-      name,
-      description,
-    }).returning()
+      const result = await db
+        .insert(schema.rooms)
+        .values({
+          name,
+          description,
+        })
+        .returning()
 
-    const insertedRoom = result[0]
+      const insertedRoom = result[0]
 
-    if (!insertedRoom) {
-        throw new Error('Failed to create new room')
+      if (!insertedRoom) {
+        throw new Error('Failed to create new room.')
+      }
+
+      return reply.status(201).send({ roomId: insertedRoom.id })
     }
-
-    return reply.status(201).send({ roomId: insertedRoom.id })
-  })
+  )
 }
